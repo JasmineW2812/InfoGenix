@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from rest_framework import generics
-from .serializers import UserSerializer, NoteSerializer, FileSerializer
+from rest_framework import generics, viewsets
+from .serializers import UserSerializer, NoteSerializer, UploadedFileSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Note, UploadedFile
+from rest_framework.parsers import MultiPartParser, FormParser
 # Create your views here.
 
 class NoteListCreate(generics.ListCreateAPIView):
@@ -33,11 +34,13 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
-class FileUploadView(generics.CreateAPIView):
-    serializer_class = FileSerializer
+class UploadedFileViewSet(viewsets.ModelViewSet):
+    queryset = UploadedFile.objects.order_by('-uploaded_at')
+    serializer_class = UploadedFileSerializer
+    parser_classes = (MultiPartParser, FormParser)
     permission_classes = [AllowAny]
-    queryset = UploadedFile.objects.all()
 
     def perform_create(self, serializer):
         user = self.request.user if self.request.user.is_authenticated else None
         serializer.save(user=user)
+

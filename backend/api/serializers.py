@@ -19,3 +19,8 @@ class NoteSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "content", "created_at", "author"]
         extra_kwargs = {"author":{"read_only":True}}
 
+class UploadedFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= UploadedFile
+        fields = ["id","user","uploaded_at","file"]
+
