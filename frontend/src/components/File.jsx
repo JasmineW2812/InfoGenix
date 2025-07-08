@@ -5,6 +5,8 @@ function FileUpload() {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
 
+  const allowedExtensions = /(\.csv)$/i;
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -12,7 +14,7 @@ function FileUpload() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!file) {
+    if (!file || !allowedExtensions.exec(file.name)) {
       setError("Please choose a file");
       return;
     }
