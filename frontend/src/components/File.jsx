@@ -43,10 +43,10 @@ function FileUpload() {
     <form onSubmit={handleSubmit}>
       <div>
         <label>Upload a file:</label>
-        <input type="file" accept=".csv" onChange={handleFileChange} />
+        <input className="bg-red-200" type="file" accept=".csv" onChange={handleFileChange} />
       </div>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <button type="submit">Upload</button>
+      <button className="bg-blue-200 w-50 h-10"type="submit">Upload</button>
     </form>
   );
 }

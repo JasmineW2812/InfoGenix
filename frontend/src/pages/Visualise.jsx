@@ -5,6 +5,7 @@ import FileUpload from "../components/File";
 function Visualise() {
     return(
         <FileUpload />
+
     );
 }
 

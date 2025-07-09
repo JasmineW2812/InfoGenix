@@ -5,7 +5,7 @@ from .serializers import UserSerializer, NoteSerializer, UploadedFileSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Note, UploadedFile
 from rest_framework.parsers import MultiPartParser, FormParser
-# Create your views here.
+import pandas as pd
 
 class NoteListCreate(generics.ListCreateAPIView):
     serializer_class = NoteSerializer
@@ -42,5 +42,33 @@ class UploadedFileViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user if self.request.user.is_authenticated else None
-        serializer.save(user=user)
+        uploaded_file_instance = serializer.save(user=user)
+        uploaded_file = uploaded_file_instance.file
 
+        try:
+            df = pd.read_csv(uploaded_file)
+            df = df.dropna()
+            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+            categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+            date_cols = df.select_dtypes(include=['datetime']).columns.tolist()
+
+            num_summary = df[numeric_cols].describe().to_dict()
+            cat_summary = {col: df[col].value_counts().to_dict() for col in categorical_cols}
+
+            print("Numeric columns:", numeric_cols)
+            print("Categorical columns:", categorical_cols)
+            print("Date columns:", date_cols)
+            print("Sample rows:")
+            print(df.head(3))
+            print("Summary of numeric columns:")
+            print(num_summary)
+
+        except Exception as e:
+            print(f"Error processing uploaded file: {e}")
+
+
+
+
+
+
+        
