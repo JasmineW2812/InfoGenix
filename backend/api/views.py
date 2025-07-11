@@ -6,6 +6,12 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Note, UploadedFile
 from rest_framework.parsers import MultiPartParser, FormParser
 import pandas as pd
+from openai import OpenAI
+from django.conf import settings
+
+
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
 
 class NoteListCreate(generics.ListCreateAPIView):
     serializer_class = NoteSerializer
@@ -63,6 +69,19 @@ class UploadedFileViewSet(viewsets.ModelViewSet):
             print("Summary of numeric columns:")
             print(num_summary)
 
+            completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            store=True,
+            messages=[
+                {"role": "user", 
+                 "content":
+                      f"What can you tell me about this data? {date_cols} and {cat_summary} and {num_summary} and describe what the dashboard could look like for this data. Be direct use the file attached as a quick glance for any extra info that may help"
+                }
+            ]
+            )
+
+            print(completion.choices[0].message)
+
         except Exception as e:
             print(f"Error processing uploaded file: {e}")
 
@@ -70,5 +89,3 @@ class UploadedFileViewSet(viewsets.ModelViewSet):
 
 
 
-
-        

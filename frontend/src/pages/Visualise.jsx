@@ -6,6 +6,8 @@ function Visualise() {
     return(
         <FileUpload />
 
+        
+
     );
 }
 
