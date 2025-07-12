@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note
-from .models import UploadedFile
+from .models import Note, UploadedFile, GPTResponse
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,3 +23,8 @@ class UploadedFileSerializer(serializers.ModelSerializer):
         model= UploadedFile
         fields = ["id","user","uploaded_at","file"]
 
+
+class GPTResponse(serializers.ModelSerializer):
+    class Meta:
+        model = GPTResponse
+        fields = ["id", "file","response"]

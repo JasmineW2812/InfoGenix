@@ -1,16 +1,21 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics, viewsets
-from .serializers import UserSerializer, NoteSerializer, UploadedFileSerializer
+from .serializers import UserSerializer, NoteSerializer, UploadedFileSerializer, GPTResponse
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Note, UploadedFile
+from .models import Note, UploadedFile, GPTResponse
 from rest_framework.parsers import MultiPartParser, FormParser
 import pandas as pd
 from openai import OpenAI
 from django.conf import settings
+import json
+import os
 
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+with open(settings.PROMPT_FILE_PATH, "r", encoding="utf-8") as f:
+    instructions = f.read()
 
 
 class NoteListCreate(generics.ListCreateAPIView):
@@ -73,14 +78,25 @@ class UploadedFileViewSet(viewsets.ModelViewSet):
             model="gpt-4o-mini",
             store=True,
             messages=[
-                {"role": "user", 
-                 "content":
-                      f"What can you tell me about this data? {date_cols} and {cat_summary} and {num_summary} and describe what the dashboard could look like for this data. Be direct use the file attached as a quick glance for any extra info that may help"
-                }
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": f"What can you tell me about this data? {date_cols} and {cat_summary} and {num_summary}"},
+                          
             ]
             )
-
+            
+            response_text = completion.choices[0].message.content
             print(completion.choices[0].message)
+            base_filename = os.path.splitext(os.path.basename(uploaded_file.name))[0]
+            response_filename = f"{base_filename}_gpt_response.json"
+            response_path = os.path.join("gpt_outputs", response_filename)
+
+            os.makedirs("gpt_outputs", exist_ok=True)
+
+            with open(response_path, "w", encoding="utf-8") as outfile:
+                json.dump({"response": response_text}, outfile, indent=2)
+
+            GPTResponse.objects.create(file=uploaded_file_instance, response=response_text)
+
 
         except Exception as e:
             print(f"Error processing uploaded file: {e}")
